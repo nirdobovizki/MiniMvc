@@ -37,13 +37,13 @@ namespace MiniMvc
         public IPipelineFilter PipelineFilter { get { return _pipelineFilter; } set { _pipelineFilter = value; } }
         public ITextEncoder TextEncoder { get { return _textEncoder; } set { _textEncoder = value; } }
         public bool StreamingMode { get { return _streamingMode; } set { _streamingMode = value; } }
-
+        public List<string> References { get; } = new List<string>();
 
         public Engine()
         {
             _host = new RazorEngineHost(new CSharpRazorCodeLanguage());
             _host.DefaultBaseClass = "MiniMvc.ViewBase";
-            //_host.GeneratedClassContext = new System.Web.Razor.Generator.GeneratedClassContext("Execute", "Write", "WriteLiteral", "WriteTo", "WriteLiteralTo", "something", "DefineSection", "BeginContext", "EndContext");
+            _host.NamespaceImports.Add("System");
             _host.GeneratedClassContext = new System.Web.Razor.Generator.GeneratedClassContext("Execute", "Write", "WriteLiteral", null, null, null, "DefineSection", null, null);
         }
 
@@ -260,18 +260,19 @@ namespace MiniMvc
             }
             var codeProvider = new CSharpCodeProvider();
             var compilerParams = new CompilerParameters(new string[] 
-            { 
-                System.Reflection.Assembly.GetExecutingAssembly().Location, 
+            {
+                typeof(Tuple).Assembly.Location,
+                typeof(Engine).Assembly.Location,
                 typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException).Assembly.Location,
                 typeof(System.Runtime.CompilerServices.CallSite).Assembly.Location,
-            });
+            }.Concat(References).ToArray());
 
             compilerParams.GenerateInMemory = true;
 
             var code = new StringWriter();
             codeProvider.GenerateCodeFromCompileUnit(parseResult.GeneratedCode, code, new CodeGeneratorOptions());
             System.Diagnostics.Debug.Write(code.ToString());
-            
+                
             var compileResult = codeProvider.CompileAssemblyFromDom(compilerParams, parseResult.GeneratedCode);
             if (compileResult.Errors.HasErrors)
             {

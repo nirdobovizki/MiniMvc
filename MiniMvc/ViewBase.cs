@@ -45,6 +45,36 @@ namespace MiniMvc
             _output.Write(value);
         }
 
+        protected void WriteAttribute(
+            string name,
+            Tuple<string, int> start,
+            Tuple<string, int> end,
+            params object[] values)
+        {
+            _output.Write(start.Item1);
+            foreach (var currentValue in values)
+            {
+                switch (currentValue)
+                {
+                    case Tuple<Tuple<string, int>, Tuple<string, int>, bool> t:
+                        WriteAttributeInternal(t);
+                        break;
+                    case Tuple<Tuple<string, int>, Tuple<object, int>, bool> t:
+                        WriteAttributeInternal(t);
+                        break;
+                    default:
+                        throw new Exception("Didn't expect this type here");
+                }
+            }
+            _output.Write(end.Item1);
+        }
+
+        private void WriteAttributeInternal<T>(Tuple<Tuple<string, int>, Tuple<T, int>, bool> value)
+        {
+            _output.Write(value.Item1.Item1);
+            _output.Write(value.Item2.Item1);
+        }
+
         protected Literal Raw(string source)
         {
             return new Literal(source);

@@ -31,6 +31,10 @@ namespace MiniMvc.Tests
                 ViewBag.Str = "<";
             }
 
+            public void Attr()
+            {
+                ViewBag.Str = "x";
+            }
 
         }
 
@@ -43,6 +47,7 @@ namespace MiniMvc.Tests
             views.AddView("ctrl/WithParameters", "this is an int @ViewBag.p1");
             views.AddView("ctrl/Encode1", "<@ViewBag.Str");
             views.AddView("ctrl/Encode2", "<@Raw(ViewBag.Str)");
+            views.AddView("ctrl/Attr", "<div id=\"d-@(ViewBag.Str)-@(ViewBag.Str).png\"></div>");
             engine.ViewLoader = views;
             var controllers = new DelegateControllerFactory();
             controllers.AddController("ctrl", () => new SimpleController());
@@ -79,6 +84,12 @@ namespace MiniMvc.Tests
         public void Raw()
         {
             Assert.AreEqual("<<", RunEngine("ctrl", "Encode2", null));
+        }
+
+        [TestMethod]
+        public void Attr()
+        {
+            Assert.AreEqual("<div id=\"d-x-x.png\"></div>", RunEngine("ctrl", "Attr", null));
         }
 
 
